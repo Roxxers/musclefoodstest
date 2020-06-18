@@ -1,0 +1,30 @@
+{
+  "name": "muscle-food-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": " ",
+  "scripts": {
+    "test": "npx nyc mocha --require ts-node/register ./tests/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": " "
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tslint": "^6.1.2",
+    "typescript": "^3.9.5"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
+    "@types/sinon": "^9.0.4",
+    "chai": "^4.2.0",
+    "mocha": "^8.0.1",
+    "node-ts": "^5.0.6",
+    "nyc": "^15.1.0",
+    "sinon": "^9.0.2",
+    "ts-node": "^8.10.2"
+  }
+}
