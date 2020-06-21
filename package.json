@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/sprintf-js": "^1.1.2",
+    "sprintf-js": "^1.1.2",
     "tslint": "^6.1.2",
     "typescript": "^3.9.5"
   },

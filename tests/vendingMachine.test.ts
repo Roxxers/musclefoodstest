@@ -2,8 +2,7 @@
 import { assert } from "chai";
 import { describe } from  "mocha";
 import Coin from "../src/coin";
-import VendingMachine, { InventoryItem } from "../src/vendingMachine";
-
+import VendingMachine, { Inventory, DisplayText } from "../src/vendingMachine";
 
 // Replacement for a configuration system to allow vendors to set accepted keys
 const coins: Coin[] = [
@@ -21,13 +20,14 @@ const coins: Coin[] = [
     }
 ];
 
-const inventory: InventoryItem[] = [
-    {
+const inventory: Inventory = {
+    "A1": {
         "name": "chips",
         "price": 65,
         "quantity": 3
     }
-]
+};
+
 
 function constructVendingMachine(): VendingMachine {
     return new VendingMachine(coins, inventory);
@@ -61,9 +61,13 @@ describe("Accepting, Rejecting, and Ejecting coins.", () => {
     });
 });
 
-// describe("Change and stuff", () => {
-//     it("Makes change", () => {
-//         const vm = constructVendingMachine();
-//         // TODO: Write the change section once inventories is done
-//     });
-// })
+describe("Buying and change", () => {
+    it("Trying to buy an item without enough coins will display the correct string and not doing anything else", () => {
+        const vm = constructVendingMachine();
+        const returnedCoins = vm.buyItem("A1");
+        assert.lengthOf(returnedCoins, 0);
+        assert.strictEqual(vm.display, vm.formatPriceText(inventory.A1.price));
+    });
+});
+
+// Display tests to make sure displays are correct and also formatted correctly
