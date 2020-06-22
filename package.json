@@ -4,7 +4,7 @@
   "description": "",
   "main": " ",
   "scripts": {
-    "test": "npx nyc mocha --require ts-node/register ./tests/*"
+    "tests": "npx nyc mocha --require ts-node/register ./tests/*"
   },
   "repository": {
     "type": "git",
