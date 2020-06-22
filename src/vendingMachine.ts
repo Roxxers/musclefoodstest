@@ -48,8 +48,8 @@ export default class VendingMachine {
     public insertedCoins: Coin[];
     public coinInv: CoinInventory;
     public inventory: Inventory;
-    public display: string; 
-    public lastDispensedItem: InventoryItem | null; //
+    public display: string;
+    public lastDispensedItem: InventoryItem | null;
     private validCoins: Coin[];
 
     /**
