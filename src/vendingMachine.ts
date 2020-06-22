@@ -26,8 +26,8 @@ export default class VendingMachine {
     public coinInv: CoinInventory; // Keeps count of the amount of coins of each type within the machine - NOT ONES IN HOLD
     public inventory: Inventory;
     public display: string; // Screen display string
+    public lastDispensedItem: InventoryItem | null; // Tracks the last item to be dispensed, helpful to check if item was bought without physical mechanism for it
     private validCoins: Coin[]; // Currency that is valid for the machine - USER CONFIG
-    private coinInvIndex: number[];
 
     constructor(acceptedCoins: Coin[], inventory: Inventory) {
         this.display = this.checkForExactChangeMode();
@@ -35,7 +35,7 @@ export default class VendingMachine {
         this.validCoins = acceptedCoins;
         this.inventory = inventory;
         this.coinInv = this.createCoinInventoryRecord();
-        this.coinInvIndex = Object.keys(this.coinInv).map((x) => {return parseInt(x, 10);});
+        this.lastDispensedItem = null;
     }
 
     get insertedCoinsValue(): number {
@@ -46,6 +46,17 @@ export default class VendingMachine {
         return value;
     }
 
+    /**
+     * Get the keys for the coin inventory object and convert them into integers
+     */
+    get coinInvIndexes() {
+        return Object.keys(this.coinInv).map((x) => {return parseInt(x, 10);});
+    }
+
+    /**
+     * Property to dynamically check if the machine has at least 5 of each coin.
+     * Ensures we can give change for all situations for all products.
+     */
     get ableToMakeChange(): boolean {
         for (const coin in this.coinInv) {
             if (this.coinInv[coin] < 5) {
@@ -95,9 +106,7 @@ export default class VendingMachine {
             this.display = this.formatPriceText(item.price);
             return [];
         } else {
-            // Give change, if possible
-            // Dispense item code here
-            item.quantity -= 1;
+            this.dispenseItem(key, item);
             this.display = DisplayText.thank;
             const amount = this.insertedCoinsValue;
             return this.calcChange(amount - item.price);
@@ -105,7 +114,7 @@ export default class VendingMachine {
     }
 
     public calcChange(changeAmount: number): Coin[] {
-        const coins = this.coinInvIndex;
+        const coins = this.coinInvIndexes;
         const change: Coin[] = [];
 
         for (const coin of coins.sort((a, b) => b - a)) {
@@ -137,6 +146,11 @@ export default class VendingMachine {
             }
         });
         return coinAccepted;
+    }
+
+    private dispenseItem(key: string, item: InventoryItem): void {
+        this.lastDispensedItem = item;
+        this.inventory[key].quantity -= 1;
     }
 
     private resetMachine(): void {
