@@ -2,7 +2,7 @@
 import { assert } from "chai";
 import { describe } from  "mocha";
 import Coin from "../src/coin";
-import VendingMachine, { Inventory, DisplayText } from "../src/vendingMachine";
+import VendingMachine, { Inventory, DisplayText, CoinInventory } from "../src/vendingMachine";
 
 
 class TestHelper {
@@ -35,7 +35,7 @@ class TestHelper {
         this.vm = new VendingMachine(this.coins, this.inventory);
     }
 
-    get A1Price() {
+    get A1Price(): number {
         return this.inventory.A1.price;
     }
 
@@ -49,17 +49,18 @@ class TestHelper {
         return this.vm.selectItem("A1");
     }
 
-    public removeAllCoinsFromMachine() {
+    public removeAllCoinsFromMachine(): void {
         for (const key of Object.keys(this.vm.coinInv)) {
             this.vm.coinInv[key] = 0;
         }
     }
 
-    public insertCoinsToAmount(amount: number) {
+    public insertCoinsToAmount(amount: number): Coin[] {
         const coinsToInsert = this.calcCoinsToInsert(amount, this.coins);
         for (const coin of coinsToInsert) {
             this.vm.insertCoin(coin.weight);
         }
+        return coinsToInsert;
     }
 
     private calcCoinsToInsert(amount: number, coins: Coin[]): Coin[] {
@@ -97,6 +98,22 @@ describe("Accepting, Rejecting, and Ejecting coins.", () => {
         helper.vm.ejectCoins();
         assert.strictEqual(helper.vm.insertedCoins.length, 0);
     });
+    it("When an item is purchased, the state of the machine's inserted coins needs to be reset", () => {
+        const helper = new TestHelper();
+        helper.insertCoinsToAmount(helper.A1Price);
+        helper.buyTestItem();
+        assert.lengthOf(helper.vm.insertedCoins, 0);
+    });
+    it("When buying an item, the coins should be added to the coin inventory", () => {
+        const helper = new TestHelper();
+        const insertedCoins = helper.insertCoinsToAmount(helper.A1Price);
+        const expectedCoinInv: CoinInventory = helper.vm.createCoinInventoryRecord();
+        for (const coin of insertedCoins) {
+            expectedCoinInv[coin.value] += 1;
+        }
+        helper.buyTestItem();
+        assert.deepEqual(helper.vm.coinInv, expectedCoinInv);
+    });
 });
 
 describe("Buying items", () => {
@@ -128,12 +145,6 @@ describe("Buying items", () => {
         helper.insertCoinsToAmount(helper.A1Price);
         helper.buyTestItem();
         assert.strictEqual(helper.vm.lastDispensedItem, null);
-    });
-    it("When an item is purchased, the state of the machine needs to reset", () => {
-        const helper = new TestHelper();
-        helper.insertCoinsToAmount(helper.A1Price);
-        helper.buyTestItem();
-        assert.lengthOf(helper.vm.insertedCoins, 0);
     });
 });
 

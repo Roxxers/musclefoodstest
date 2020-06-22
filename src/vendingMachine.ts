@@ -66,7 +66,7 @@ export default class VendingMachine {
         return true;
     }
 
-    private createCoinInventoryRecord(): CoinInventory {
+    public createCoinInventoryRecord(): CoinInventory {
         const coins: CoinInventory = {};
         this.validCoins.forEach(coin => {
             coins[coin.value] = 0; // Set amount of this coin in the machine to zero
@@ -87,30 +87,31 @@ export default class VendingMachine {
         }
     }
 
-    public buyItem(key: string): Coin[] {
-        // No way to see if we get a false unless you check display
+    private buyItem(key: string, item: InventoryItem): Coin[] {
+        this.dispenseItem(key, item);
+        this.display = DisplayText.thank;
+        const amount = this.insertedCoinsValue;
+        return this.calcChange(amount - item.price);
+    }
+
+    public selectItem(key: string) {
+        let change: Coin[] = [];
         // Look up item
         const item = this.inventory[key];
         // Item doesn't exist
         if (!item) {
             this.display = DisplayText.soldOut;
-            return [];
         }
-        // Check if in stock
-        if (item.quantity <= 0) {
+        else if (item.quantity <= 0) { // Check if in stock
             this.display = DisplayText.soldOut;
-            return [];
         }
-        // Check if coins in the machine actually pay for the item
-        if (item.price > this.insertedCoinsValue) {
+        else if (item.price > this.insertedCoinsValue) { // Check if coins in the machine actually pay for the item
             this.display = this.formatPriceText(item.price);
-            return [];
         } else {
-            this.dispenseItem(key, item);
-            this.display = DisplayText.thank;
-            const amount = this.insertedCoinsValue;
-            return this.calcChange(amount - item.price);
+            change = this.buyItem(key, item);
         }
+        this.addCoinsToInv();
+        return change;
     }
 
     public calcChange(changeAmount: number): Coin[] {
@@ -148,12 +149,23 @@ export default class VendingMachine {
         return coinAccepted;
     }
 
+    /**
+     * Takes all coins that have been inserted in the machine and dumps them in the coin inventory.
+     * This is done after purchases and after change is given.
+     */
+    private addCoinsToInv() {
+        for (const coin of this.insertedCoins) {
+            this.coinInv[coin.value] += 1;
+        }
+        this.insertedCoins = [];
+    }
+
     private dispenseItem(key: string, item: InventoryItem): void {
         this.lastDispensedItem = item;
         this.inventory[key].quantity -= 1;
     }
 
-    private resetMachine(): void {
+    public resetMachine(): void {
         this.insertedCoins = [];
         this.display = this.checkForExactChangeMode();
     }
@@ -162,7 +174,6 @@ export default class VendingMachine {
      * Call for when eject button is pressed on the machine. Also resets display
      */
     public ejectCoins(): void {
-        // Placeholder here for physically ejecting coins
         this.resetMachine();
     }
 }
