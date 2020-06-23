@@ -5,7 +5,7 @@ import { vsprintf } from "sprintf-js";
 /**
  * CoinInventory is an object that represents a coin with a value as an index, and the amount of coins in the machine as the value
  */
-export interface CoinInventory extends Record<string, number> {}
+export type CoinInventory = Record<string, number>;
 
 /**
  * Interface of an item of a product in one shelf of the machine
@@ -20,9 +20,9 @@ export interface InventoryItem {
 }
 
 /**
- * Interface represents the full visible inventory of the machine. It maps location as the key (A2, C4) and the actual item as the value
+ * Type represents the full visible inventory of the machine. It maps location as the key (A2, C4) and the actual item as the value
  */
-export interface Inventory extends Record<string, InventoryItem> {}
+export type Inventory = Record<string, InventoryItem>;
 
 /**
  * Enum for all display text strings to be displayed on the machines screen
@@ -67,9 +67,18 @@ export default class VendingMachine {
     }
 
     /**
-     * Calculates the total value of all of the coins inserted into the machine
+     * Get the keys for the coin inventory object and convert them into integers
+     * @returns the keys of the coinInv property
      */
-    get insertedCoinsValue(): number {
+    get coinInvIndexes() {
+        return Object.keys(this.coinInv).map((x) => parseInt(x, 10));
+    }
+
+    /**
+     * Calculates the total value of all of the coins inserted into the machine
+     * @returns total value of all coins inserted
+     */
+    public insertedCoinsValue(): number {
         let value: number = 0;
         this.insertedCoins.forEach(coin => {
             value += coin.value;
@@ -78,20 +87,12 @@ export default class VendingMachine {
     }
 
     /**
-     * Get the keys for the coin inventory object and convert them into integers
-     * @returns the keys of the coinInv property
-     */
-    get coinInvIndexes() {
-        return Object.keys(this.coinInv).map((x) => {return parseInt(x, 10);});
-    }
-
-    /**
-     * Property to dynamically check if the machine has at least 5 of each coin.
+     * Dynamically checks if the machine has at least 5 of each coin.
      * Ensures we can give change for all situations for all products.
      * @returns if the machine is able to make change or not
      */
-    get ableToMakeChange(): boolean {
-        for (const coin in this.coinInv) {
+    public ableToMakeChange(): boolean {
+        for (const coin of Object.keys(this.coinInv)) {
             if (this.coinInv[coin] < 5) {
                 return false;
             }
@@ -101,6 +102,8 @@ export default class VendingMachine {
 
     /**
      * Creates and empty coin inventory as part of initialization
+     * This is created as empty as the machine's software has no way of knowing the inv amount. This is something that should be edited later on
+     * by a check done by the hardware client this library is being used with for the physical machine.
      * @returns an empty CoinInventory object
      */
     public createCoinInventoryRecord(): CoinInventory {
@@ -125,7 +128,7 @@ export default class VendingMachine {
      */
     private checkForExactChangeMode(): string {
         // Function to check if exact change mode should be on, or normal operation
-        if (this.ableToMakeChange) {
+        if (this.ableToMakeChange()) {
             return DisplayText.insert;
         } else {
             return DisplayText.exact;
@@ -141,7 +144,7 @@ export default class VendingMachine {
     private buyItem(key: string, item: InventoryItem): Coin[] {
         this.dispenseItem(key, item);
         this.display = DisplayText.thank;
-        const amount = this.insertedCoinsValue;
+        const amount = this.insertedCoinsValue();
         return this.calcChange(amount - item.price);
     }
 
@@ -162,7 +165,7 @@ export default class VendingMachine {
         else if (item.quantity <= 0) { // Check if in stock
             this.display = DisplayText.soldOut;
         }
-        else if (item.price > this.insertedCoinsValue) { // Check if coins in the machine actually pay for the item
+        else if (item.price > this.insertedCoinsValue()) { // Check if coins in the machine actually pay for the item
             this.display = this.formatPriceText(item.price);
         } else {
             change = this.buyItem(key, item);

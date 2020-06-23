@@ -85,7 +85,7 @@ describe("Accepting, Rejecting, and Ejecting coins.", () => {
     it("Valid coins should be accepted and added to total currency in the machine", () => {
         const helper = new TestHelper();
         helper.insertCoinsToAmount(5);
-        assert.strictEqual(5, helper.vm.insertedCoinsValue);
+        assert.strictEqual(5, helper.vm.insertedCoinsValue());
     });
     it("Non-valid coins should be rejected", () => {
         const helper = new TestHelper();
