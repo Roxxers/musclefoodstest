@@ -92,7 +92,8 @@ export default class VendingMachine {
      * @returns if the machine is able to make change or not
      */
     public ableToMakeChange(): boolean {
-        for (const coin of Object.keys(this.coinInv)) {
+        for (const coin in this.coinInv) {
+            if (!this.coinInv.hasOwnProperty(coin)) continue; // Avoid wacky javascript issues
             if (this.coinInv[coin] < 5) {
                 return false;
             }
